@@ -49,7 +49,7 @@
 
 (defn mesh-to-display [mesh rotation-theta]
   (-> mesh
-      (rotate-mesh rotation-theta)
+      (rotate-mesh-z-x rotation-theta)
       (project-to-3d)))
 
 (defn repaint-canvas [top-panel canvas]

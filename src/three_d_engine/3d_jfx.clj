@@ -15,9 +15,10 @@
 (def start-millis (System/currentTimeMillis))
 (def repaint-millis 30)
 
-(defn mesh-to-display [mesh rotation-theta]
+(defn mesh-to-display [mesh theta]
   (-> mesh
-      (rotate-mesh rotation-theta)
+      (rotate [(rotation-matrix :z theta)
+               (rotation-matrix :x (* 0.5 theta))])
       (project-to-3d)))
 
 (def *state
