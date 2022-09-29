@@ -9,7 +9,7 @@
   (:import (javafx.scene.paint Color)
            (java.util Timer TimerTask)))
 
-(def base-mesh (import-mesh-from "teapot.obj"))
+(def base-mesh (import-mesh-from "teapot-low-poly.obj"))
 (def mesh-color {:r 62 :g 126 :b 88})
 
 (def start-millis (System/currentTimeMillis))
