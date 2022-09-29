@@ -62,9 +62,7 @@
                                                        :width   (:width window-size)
                                                        :height  (:height window-size)
                                                        :fill    :black}]
-                                                     (fx-mesh-to-polygons moved-mesh)))}}}
-
-  )
+                                                     (fx-mesh-to-polygons moved-mesh)))}}})
 
 (def renderer
   (fx/create-renderer
