@@ -12,3 +12,8 @@
 (defn check-state [boolean-func ^String message]
   (if (= true (boolean-func))
     true (throw (IllegalStateException. message))))
+
+(defn fast-inv-sqrt [x]
+  (let [i (Float/floatToRawIntBits x)
+        y (Float/intBitsToFloat (- 0x5f3759df (bit-shift-right i 1)))]
+    (* y (- 1.5 (* 0.5 x y y)))))

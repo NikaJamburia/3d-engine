@@ -22,11 +22,10 @@
      [0     0     0 1]]))
 
 (defn rotate-triangle [tri theta]
-  (let [vectors-2d (->> (:vectors tri)
-                        (map #(multiply-3d-vector-by-matrix % (rotation-matrix-z theta)))
-                        (map #(multiply-3d-vector-by-matrix % (rotation-matrix-x theta)))
-                        (vec))]
-    (assoc tri :vectors vectors-2d)))
+  (assoc tri :vectors (->> (:vectors tri)
+                           (map #(multiply-3d-vector-by-matrix % (rotation-matrix-z theta)))
+                           (map #(multiply-3d-vector-by-matrix % (rotation-matrix-x theta)))
+                           (vec))))
 
 (defn rotate-mesh [mesh theta]
   (let [rotated (->> (:triangles mesh)

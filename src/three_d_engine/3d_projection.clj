@@ -25,21 +25,24 @@
 (defn translate-triangle [tri]
   (assoc tri :vectors (vec (map #(translate-z % translate-z-by) (:vectors tri)))))
 
+(defn assign-normal [tri]
+  (assoc tri :normal (calculate-triangle-normal tri)))
+
 (defn project-triangle [tri]
-  (let [lighting-value (get-lighting tri)
-        projected-vectors (->> (:vectors tri)
-                     (map #(multiply-3d-vector-by-matrix % projection-matrix))
-                     (map #(scale-vector %)))]
-    (assoc tri
-      :vectors (vec projected-vectors)
-      :lighting lighting-value)))
+  (assoc tri :vectors (->> (:vectors tri)
+                           (map #(multiply-3d-vector-by-matrix % projection-matrix))
+                           (map scale-vector)
+                           (vec))))
+
+(defn illuminate [tri]
+  (assoc tri :lighting (get-lighting tri)))
 
 (defn project-to-3d [mesh]
-  (let [tris (:triangles mesh)
-        processed (->> tris
-                       (map #(translate-triangle %))
-                       (filter #(is-visible? %))
-                       (map #(project-triangle %))
-                       (sort #(compare-triangles-by-z %1 %2))
-                       (vec))]
-    (assoc mesh :triangles processed)))
+  (assoc mesh :triangles (->> (:triangles mesh)
+                              (map translate-triangle)
+                              (map assign-normal)
+                              (filter is-visible?)
+                              (map illuminate)
+                              (map project-triangle)
+                              (sort compare-triangles-by-z)
+                              (vec))))

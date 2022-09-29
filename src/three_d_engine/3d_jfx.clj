@@ -79,5 +79,4 @@
 
 (defn -main[& args]
   (fx/mount-renderer *state renderer)
-  (.schedule (new Timer) repaint-mesh-task repaint-millis repaint-millis)
-  )
+  (.schedule (new Timer) repaint-mesh-task repaint-millis repaint-millis))

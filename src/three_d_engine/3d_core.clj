@@ -66,11 +66,11 @@
     (- (* (:x vec1) (:y vec2)) (* (:y vec1) (:x vec2)))))
 
 (defn normalize [vector]
-  (let [length (Math/sqrt (+ (square (:x vector)) (square (:y vector)) (square (:z vector)) ))]
+  (let [length (fast-inv-sqrt (+ (square (:x vector)) (square (:y vector)) (square (:z vector)) ))]
     (assoc vector
-      :x (/ (:x vector) length)
-      :y (/ (:y vector) length)
-      :z (/ (:z vector) length))))
+      :x (* (:x vector) length)
+      :y (* (:y vector) length)
+      :z (* (:z vector) length))))
 
 (defn calculate-dot-product [vec1 vec2]
   (+
@@ -85,16 +85,12 @@
     (normalize (calc-cross-product line1 line2))))
 
 (defn is-visible? [triangle]
-  (let [vectors (:vectors triangle)
-        normal (calculate-triangle-normal triangle)
-        dot-pr (calculate-dot-product normal (vector-subtract (first vectors) camera))]
-    (neg? dot-pr)))
+  (neg?
+    (calculate-dot-product (:normal triangle) (vector-subtract (first (:vectors triangle)) camera))))
 
+(def light-direction (normalize (vector-3d 0 0 1)))
 (defn get-lighting [tri]
-  (let [light-direction (normalize (vector-3d 0 0 1))
-        triangle-normal (calculate-triangle-normal tri)
-        dot-pr (calculate-dot-product triangle-normal light-direction)]
-    dot-pr))
+  (calculate-dot-product (:normal tri) light-direction))
 
 (defn get-z-midpoint [tri]
   (let [vectors (:vectors tri)
