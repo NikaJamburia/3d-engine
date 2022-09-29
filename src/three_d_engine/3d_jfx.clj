@@ -47,7 +47,7 @@
                (:x (third vec)) (:y (third vec))]}))
 
 (defn fx-mesh-to-polygons [mesh]
-  (map #(fx-create-triangle %) (:triangles mesh)))
+  (map fx-create-triangle (:triangles mesh)))
 
 (defn root [{:keys [moved-mesh]}]
   {:fx/type          :stage
