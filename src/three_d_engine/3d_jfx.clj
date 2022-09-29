@@ -5,17 +5,25 @@
             [three-d-engine.3d-projection :refer :all]
             [three-d-engine.3d-rotation :refer :all]
             [three-d-engine.3d-util :refer :all]
+            [three-d-engine.3d-options-menu :refer :all]
             [cljfx.api :as fx])
   (:import (javafx.scene.paint Color)
            (java.util Timer TimerTask)
            (javafx.application Platform)))
 
 (def base-mesh (import-mesh-from "teapot-low-poly.obj"))
-(def mesh-color {:r 62 :g 126 :b 88})
 
-(def start-millis (System/currentTimeMillis))
 (def repaint-millis 30)
+(def start-millis (System/currentTimeMillis))
 (def timer (new Timer))
+
+(def *options (atom {:color {:r 62 :g 126 :b 88}
+                     :rotation-stopped-at-theta nil}))
+
+(defn get-current-rotation-theta []
+  (if (= nil (:rotation-stopped-at-theta @*options))
+    (/ (- (System/currentTimeMillis) start-millis) 1500)
+    (:rotation-stopped-at-theta @*options)))
 
 (defn mesh-to-display [mesh theta]
   (-> mesh
@@ -23,7 +31,7 @@
                (rotation-matrix :x (* 0.5 theta))])
       (project-to-3d)))
 
-(def *state
+(def *mesh-state
   (atom {:moved-mesh (mesh-to-display base-mesh 0)}))
 
 (defn adjust-color-part [part lighting]
@@ -41,7 +49,7 @@
 
 (defn fx-create-triangle [triangle]
   (let [vec (:vectors triangle)
-        color (adjust-color mesh-color (:lighting triangle))]
+        color (adjust-color (:color @*options) (:lighting triangle))]
     {:fx/type :polygon
      :fill color
      :smooth false
@@ -58,6 +66,7 @@
    :resizable        false
    :min-height       (:height window-size)
    :min-width        (:width window-size)
+   :title            "Mesh"
    :on-close-request (fn [e]
                        (.cancel timer)
                        (.purge timer)
@@ -75,13 +84,28 @@
   (fx/create-renderer
     :middleware (fx/wrap-map-desc assoc :fx/type root)))
 
+(defn update-mesh-state []
+  (let [time-elapsed (get-current-rotation-theta)]
+    (swap!
+      *mesh-state assoc
+      :moved-mesh (mesh-to-display base-mesh time-elapsed))))
+
 (def repaint-mesh-task (proxy [TimerTask] []
                   (run []
-                    (let [time-elapsed (/ (- (System/currentTimeMillis) start-millis) 1500)]
-                      (swap!
-                        *state assoc
-                        :moved-mesh (mesh-to-display base-mesh time-elapsed))))))
+                    (update-mesh-state))))
+
+(defn options-menu []
+  (display-options-menu
+    (fn [color]
+      (swap! *options assoc :color color)
+      (update-mesh-state))
+    (fn []
+      (swap! *options assoc :rotation-stopped-at-theta (get-current-rotation-theta)))
+    (fn []
+      (swap! *options assoc :rotation-stopped-at-theta nil))))
 
 (defn -main[& args]
-  (fx/mount-renderer *state renderer)
-  (.schedule timer repaint-mesh-task repaint-millis repaint-millis))
+  (fx/mount-renderer *mesh-state renderer)
+  (.schedule timer repaint-mesh-task repaint-millis repaint-millis)
+  ;(options-menu)
+  )
