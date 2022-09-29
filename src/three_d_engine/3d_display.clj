@@ -71,7 +71,7 @@
 (defn -main[& args]
   (let [frame (new JFrame)
         top-panel (new JPanel)
-        mesh (import-mesh-from "spaceship.obj")
+        mesh (import-mesh-from "teapot.obj")
         ;mesh mesh-cube
         canvas (create-canvas (mesh-to-display mesh 0))
         timer (new Timer repaint-millis nil)]

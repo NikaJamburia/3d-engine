@@ -23,21 +23,22 @@
   (assoc vec-3d :z (+ amount (:z vec-3d))))
 
 (defn translate-triangle [tri]
-  (create-triangle (vec (map #(translate-z % translate-z-by) (:vectors tri)))))
+  (assoc tri :vectors (vec (map #(translate-z % translate-z-by) (:vectors tri)))))
 
 (defn project-triangle [tri]
-  (let [translated (translate-triangle tri)
-        lighting-value (get-lighting translated)
-        vecs-2d (->> (:vectors translated)
+  (let [lighting-value (get-lighting tri)
+        projected-vectors (->> (:vectors tri)
                      (map #(multiply-3d-vector-by-matrix % projection-matrix))
                      (map #(scale-vector %)))]
-    (if (is-visible? translated)
-      (assoc tri :vectors (vec vecs-2d) :lighting lighting-value)
-      (assoc tri :lighting lighting-value))))
+    (assoc tri
+      :vectors (vec projected-vectors)
+      :lighting lighting-value)))
 
 (defn project-to-3d [mesh]
   (let [tris (:triangles mesh)
         processed (->> tris
+                       (map #(translate-triangle %))
+                       (filter #(is-visible? %))
                        (map #(project-triangle %))
                        (sort #(compare-triangles-by-z %1 %2))
                        (vec))]
