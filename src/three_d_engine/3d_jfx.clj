@@ -7,13 +7,15 @@
             [three-d-engine.3d-util :refer :all]
             [cljfx.api :as fx])
   (:import (javafx.scene.paint Color)
-           (java.util Timer TimerTask)))
+           (java.util Timer TimerTask)
+           (javafx.application Platform)))
 
 (def base-mesh (import-mesh-from "teapot-low-poly.obj"))
 (def mesh-color {:r 62 :g 126 :b 88})
 
 (def start-millis (System/currentTimeMillis))
 (def repaint-millis 30)
+(def timer (new Timer))
 
 (defn mesh-to-display [mesh theta]
   (-> mesh
@@ -56,6 +58,10 @@
    :resizable        false
    :min-height       (:height window-size)
    :min-width        (:width window-size)
+   :on-close-request (fn [e]
+                       (.cancel timer)
+                       (.purge timer)
+                       (Platform/exit))
    :scene            {:fx/type :scene
                       :root    {:fx/type  :pane
                                 :children (into [] (concat
@@ -78,4 +84,4 @@
 
 (defn -main[& args]
   (fx/mount-renderer *state renderer)
-  (.schedule (new Timer) repaint-mesh-task repaint-millis repaint-millis))
+  (.schedule timer repaint-mesh-task repaint-millis repaint-millis))
