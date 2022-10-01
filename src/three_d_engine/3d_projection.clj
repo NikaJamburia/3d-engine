@@ -22,8 +22,8 @@
 (defn translate-z [vec-3d amount]
   (assoc vec-3d :z (+ amount (:z vec-3d))))
 
-(defn translate-triangle [tri]
-  (assoc tri :vectors (vec (map #(translate-z % translate-z-by) (:vectors tri)))))
+(defn translate-triangle [tri value]
+  (assoc tri :vectors (vec (map #(translate-z % value) (:vectors tri)))))
 
 (defn assign-normal [tri]
   (assoc tri :normal (calculate-triangle-normal tri)))
@@ -37,9 +37,12 @@
 (defn illuminate [tri]
   (assoc tri :lighting (get-lighting tri)))
 
+(defn translate-mesh-by-z [mesh value]
+  (assoc mesh :triangles (map #(translate-triangle % value) (:triangles mesh))))
+
 (defn project-to-3d [mesh]
   (assoc mesh :triangles (->> (:triangles mesh)
-                              (map translate-triangle)
+                              ;(map #(translate-triangle % translate-z-by))
                               (map assign-normal)
                               (filter is-visible?)
                               (map illuminate)

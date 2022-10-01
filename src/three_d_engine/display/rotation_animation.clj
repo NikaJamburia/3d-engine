@@ -17,7 +17,8 @@
 (defn- make-rotation [mesh theta]
   (-> mesh
       (rotate [(rotation-matrix :z theta)
-               (rotation-matrix :x (* 0.5 theta))])))
+               (rotation-matrix :x (* 0.5 theta))])
+      (translate-mesh-by-z (float 8))))
 
 (defn- get-current-rotation-theta []
   (if (= nil (:rotation-stopped-at-theta @*options))
@@ -36,6 +37,7 @@
     (resume-rotation)))
 
 (defn- key-pressed [e]
+  (println (.getCode e))
   (if (= (KeyCode/SPACE) (.getCode e))
     (toggle-animation)))
 

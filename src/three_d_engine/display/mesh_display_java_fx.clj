@@ -5,17 +5,18 @@
             [three-d-engine.3d-projection :refer :all]
             [three-d-engine.3d-util :refer :all]
             [three-d-engine.display.rotation-animation :refer [rotation-animation]]
+            [three-d-engine.display.manual-rotation :refer [manual-rotation]]
             [cljfx.api :as fx])
   (:import (javafx.scene.paint Color)
            (javafx.application Platform)))
 
-(def animation rotation-animation)
+(def animation manual-rotation)
 
 (def base-mesh (import-mesh-from "teapot-low-poly.obj"))
 (def mesh-color {:r 62 :g 126 :b 88})
 
 (def *mesh-state
-  (atom {:moved-mesh (project-to-3d base-mesh)}))
+  (atom {:moved-mesh (project-to-3d (translate-mesh-by-z base-mesh 8))}))
 
 (defn adjust-color-part [part lighting]
   (let [abs-value (Math/abs (float lighting))
@@ -54,6 +55,7 @@
                        ((:finish animation))
                        (Platform/exit))
    :scene            {:fx/type :scene
+                      :on-scroll (fn [e] ((:handle-scroll animation) e))
                       :on-key-pressed (fn [e] ((:handle-key-press animation) e))
                       :root    {:fx/type  :pane
                                 :children (into [] (concat
@@ -72,9 +74,10 @@
     *mesh-state assoc
     :moved-mesh mesh))
 
+(defn handle-new-animation-frame [mesh]
+  (update-mesh-state (project-to-3d mesh)))
 
 (defn -main[& args]
   (fx/mount-renderer *mesh-state renderer)
-  ((:start animation) base-mesh #(update-mesh-state (project-to-3d %)))
-  )
+  ((:start animation) base-mesh handle-new-animation-frame))
 
