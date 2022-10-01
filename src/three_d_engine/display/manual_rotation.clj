@@ -1,9 +1,13 @@
 (ns three-d-engine.display.manual-rotation
   (:require [three-d-engine.3d-rotation :refer :all]
+            [three-d-engine.display.mesh-display-java-fx :refer :all]
+            [three-d-engine.3d-import :refer :all]
             [three-d-engine.3d-projection :refer :all])
   (:import (javafx.scene.input KeyCode)))
 
 (def pi (Math/PI))
+
+(def base-mesh (import-mesh-from "teapot-low-poly.obj"))
 
 (defn to-radians [degrees]
   (/ (* degrees pi) 180))
@@ -24,15 +28,11 @@
   (swap! *rotation-state assoc coordinate new-value))
 
 (defn apply-rotation-state []
-  (let [mesh (:base-mesh @*rotation-state)]
-    (-> mesh
-        (rotate [(rotation-matrix :x (:x @*rotation-state))
-                      (rotation-matrix :y (:y @*rotation-state))
-                      (rotation-matrix :z (:z @*rotation-state))])
-        (translate-mesh-by-z (:z-translation @*rotation-state)))))
-
-(defn notify-state-updated []
-  ((:new-frame-callback @*rotation-state) (apply-rotation-state)))
+  (-> base-mesh
+      (rotate [(rotation-matrix :x (:x @*rotation-state))
+               (rotation-matrix :y (:y @*rotation-state))
+               (rotation-matrix :z (:z @*rotation-state))])
+      (project-to-3d (:z-translation @*rotation-state))))
 
 (defn key-pressed [e]
   (let [key-code (.getCode e)]
@@ -44,12 +44,12 @@
       (= (KeyCode/W) key-code) (update-theta :z (add-theta (:z @*rotation-state) rotation-step-degrees))
       (= (KeyCode/S) key-code) (update-theta :z (subtract-theta (:z @*rotation-state) rotation-step-degrees))
       )
-    (notify-state-updated)))
+    (render-mesh (apply-rotation-state))))
 
 (defn zoom-out []
   (let [old-value (:z-translation @*rotation-state)]
     (swap! *rotation-state assoc :z-translation (+ old-value zoom-step))
-    (notify-state-updated)))
+    (render-mesh (apply-rotation-state))))
 
 (defn zoom-in []
   (let [old-value (:z-translation @*rotation-state)
@@ -58,18 +58,12 @@
                     (- old-value zoom-step))]
     (println old-value new-value)
     (swap! *rotation-state assoc :z-translation new-value)
-    (notify-state-updated)))
+    (render-mesh (apply-rotation-state))))
 
 (defn scrolled [e]
   (if (neg? (.getDeltaY e))
     (zoom-out)
     (zoom-in)))
 
-(defn start [base-mesh on-new-frame]
-  (swap! *rotation-state assoc :new-frame-callback on-new-frame)
-  (swap! *rotation-state assoc :base-mesh base-mesh))
-
-(def manual-rotation {:start start
-                      :handle-key-press key-pressed
-                      :handle-scroll scrolled
-                      :finish #()})
+(defn -main[& args]
+  (display-mesh-window (apply-rotation-state) key-pressed scrolled #()))

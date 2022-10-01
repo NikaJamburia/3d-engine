@@ -4,6 +4,7 @@
             [three-d-engine.3d-import :refer :all]
             [three-d-engine.3d-projection :refer :all]
             [three-d-engine.3d-rotation :refer :all]
+            [three-d-engine.display.mesh-display-java-fx :refer :all]
             [three-d-engine.3d-util :refer :all])
   (:import (java.util Timer TimerTask)
            (javafx.scene.input KeyCode)))
@@ -14,11 +15,13 @@
 (def start-millis (System/currentTimeMillis))
 (def timer (new Timer))
 
+(def base-mesh (import-mesh-from "teapot-low-poly.obj"))
+
 (defn- make-rotation [mesh theta]
   (-> mesh
       (rotate [(rotation-matrix :z theta)
                (rotation-matrix :x (* 0.5 theta))])
-      (translate-mesh-by-z (float 8))))
+      (project-to-3d 8)))
 
 (defn- get-current-rotation-theta []
   (if (= nil (:rotation-stopped-at-theta @*options))
@@ -41,21 +44,17 @@
   (if (= (KeyCode/SPACE) (.getCode e))
     (toggle-animation)))
 
-(defn- start-rotation-animation [base-mesh on-new-frame]
+(defn- start-rotation-animation []
   (.schedule
     timer
-    (proxy [TimerTask] []
-      (run []
-        (on-new-frame (make-rotation base-mesh (get-current-rotation-theta)))))
+    (proxy [TimerTask] [] (run [] (render-mesh (make-rotation base-mesh (get-current-rotation-theta)))))
     repaint-millis
-    repaint-millis)
-  )
+    repaint-millis))
 
 (defn- finish-animation []
   (.cancel timer)
   (.purge timer))
 
-(def rotation-animation {:start start-rotation-animation
-                         :handle-key-press key-pressed
-                         :finish finish-animation})
-
+(defn -main[& args]
+  (display-mesh-window (make-rotation base-mesh 0) key-pressed #() finish-animation)
+  (start-rotation-animation))

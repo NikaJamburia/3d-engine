@@ -5,7 +5,6 @@
 (def far 1000)
 (def aspect (/ (:height window-size) (:width window-size)))
 (def fov 90)
-(def translate-z-by (float 8))
 (def view-space-scale (/ far (- far near)))
 (def fov-rad (/ 1 (Math/tan (* fov (* (float 3.14159) (/ 0.5 180))))))
 
@@ -37,12 +36,9 @@
 (defn illuminate [tri]
   (assoc tri :lighting (get-lighting tri)))
 
-(defn translate-mesh-by-z [mesh value]
-  (assoc mesh :triangles (map #(translate-triangle % value) (:triangles mesh))))
-
-(defn project-to-3d [mesh]
+(defn project-to-3d [mesh z-translation]
   (assoc mesh :triangles (->> (:triangles mesh)
-                              ;(map #(translate-triangle % translate-z-by))
+                              (map #(translate-triangle % z-translation))
                               (map assign-normal)
                               (filter is-visible?)
                               (map illuminate)

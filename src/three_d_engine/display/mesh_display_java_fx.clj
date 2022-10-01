@@ -4,26 +4,20 @@
             [three-d-engine.3d-import :refer :all]
             [three-d-engine.3d-projection :refer :all]
             [three-d-engine.3d-util :refer :all]
-            [three-d-engine.display.rotation-animation :refer [rotation-animation]]
-            [three-d-engine.display.manual-rotation :refer [manual-rotation]]
             [cljfx.api :as fx])
   (:import (javafx.scene.paint Color)
            (javafx.application Platform)))
 
-(def animation manual-rotation)
-
-(def base-mesh (import-mesh-from "teapot-low-poly.obj"))
 (def mesh-color {:r 62 :g 126 :b 88})
 
-(def *mesh-state
-  (atom {:moved-mesh (project-to-3d (translate-mesh-by-z base-mesh 8))}))
+(def *mesh-state (atom {}))
 
-(defn adjust-color-part [part lighting]
+(defn- adjust-color-part [part lighting]
   (let [abs-value (Math/abs (float lighting))
         multiplied (Math/ceil (* abs-value part))]
     (if (> multiplied 255) 255 (int multiplied))))
 
-(defn adjust-color [color lighting]
+(defn- adjust-color [color lighting]
   (if (neg? lighting)
     (Color/rgb
       (adjust-color-part (:r color) lighting)
@@ -31,7 +25,7 @@
       (adjust-color-part (:b color) lighting))
     (Color/BLACK)))
 
-(defn fx-create-triangle [triangle]
+(defn- fx-create-triangle [triangle]
   (let [vec (:vectors triangle)
         color (adjust-color mesh-color (:lighting triangle))]
     {:fx/type :polygon
@@ -41,10 +35,10 @@
                (:x (second vec)) (:y (second vec))
                (:x (third vec)) (:y (third vec))]}))
 
-(defn fx-mesh-to-polygons [mesh]
+(defn- fx-mesh-to-polygons [mesh]
   (map fx-create-triangle (:triangles mesh)))
 
-(defn root [{:keys [moved-mesh]}]
+(defn- root [{:keys [moved-mesh handle-key-press handle-scroll handle-exit]}]
   {:fx/type          :stage
    :showing          true
    :resizable        false
@@ -52,11 +46,11 @@
    :min-width        (:width window-size)
    :title            "Mesh"
    :on-close-request (fn [e]
-                       ((:finish animation))
+                       (handle-exit)
                        (Platform/exit))
    :scene            {:fx/type :scene
-                      :on-scroll (fn [e] ((:handle-scroll animation) e))
-                      :on-key-pressed (fn [e] ((:handle-key-press animation) e))
+                      :on-scroll (fn [e] (handle-scroll e))
+                      :on-key-pressed (fn [e] (handle-key-press e))
                       :root    {:fx/type  :pane
                                 :children (into [] (concat
                                                      [{:fx/type :rectangle
@@ -69,15 +63,18 @@
   (fx/create-renderer
     :middleware (fx/wrap-map-desc assoc :fx/type root)))
 
-(defn update-mesh-state [mesh]
+(defn- update-mesh-state [mesh]
   (swap!
     *mesh-state assoc
     :moved-mesh mesh))
 
-(defn handle-new-animation-frame [mesh]
-  (update-mesh-state (project-to-3d mesh)))
+(defn render-mesh [mesh]
+  (update-mesh-state mesh))
 
-(defn -main[& args]
-  (fx/mount-renderer *mesh-state renderer)
-  ((:start animation) base-mesh handle-new-animation-frame))
+(defn display-mesh-window [mesh handle-key-press handle-scroll on-exit]
+  (render-mesh mesh)
+  (swap! *mesh-state assoc :handle-key-press handle-key-press)
+  (swap! *mesh-state assoc :handle-scroll handle-scroll)
+  (swap! *mesh-state assoc :handle-exit on-exit)
+  (fx/mount-renderer *mesh-state  renderer))
 
