@@ -1,9 +1,6 @@
 (ns three-d-engine.3d-core
   (:require [three-d-engine.3d-util :refer :all]))
 
-; CONFIG
-(def window-size {:width 1024 :height 768})
-
 ; MODEL
 (defn vector-3d [x y z]
   {:pre [(check-state #(number? x) (str "All coordinates must be numbers" z))
@@ -48,7 +45,7 @@
        :z (/ (:z multiplied) w)}
       multiplied)))
 
-(defn scale-vector [vector]
+(defn scale-vector [vector window-size]
   (assoc vector
     :x (* (inc (:x vector)) (* 0.5 (:width window-size)))
     :y (* (inc (:y vector)) (* 0.5 (:height window-size)))))

@@ -9,11 +9,15 @@
 
 (def base-mesh (import-mesh-from "teapot-low-poly.obj"))
 
+(def ^:private projection-params
+  (assoc default-projection-params
+    :window-size {:width 1366 :height 768}))
+
 (def rotation-step (to-radians 20))
-(def zoom-step 1)
+(def zoom-step 5)
 
 (def *rotation-state
-  (atom {:x 0 :y 0 :z 0 :z-translation 8}))
+  (atom {:x 0 :y 0 :z 0 :fov 90}))
 
 (defn update-theta [coordinate new-value]
   (swap! *rotation-state assoc coordinate new-value))
@@ -23,7 +27,7 @@
       (rotate [(rotation-matrix :x (:x @*rotation-state))
                (rotation-matrix :y (:y @*rotation-state))
                (rotation-matrix :z (:z @*rotation-state))])
-      (project-to-3d (:z-translation @*rotation-state))))
+      (project-to-3d (assoc projection-params :fov (:fov @*rotation-state)))))
 
 (defn key-pressed [e]
   (let [key-code (.getCode e)]
@@ -38,15 +42,15 @@
     (render-mesh (apply-rotation-state))))
 
 (defn zoom-out []
-  (let [old-value (:z-translation @*rotation-state)]
-    (swap! *rotation-state assoc :z-translation (+ old-value zoom-step))))
+  (let [old-value (:fov @*rotation-state)]
+    (swap! *rotation-state assoc :fov (+ old-value zoom-step))))
 
 (defn zoom-in []
-  (let [old-value (:z-translation @*rotation-state)
+  (let [old-value (:fov @*rotation-state)
         new-value (if (= 1 old-value)
                     old-value
                     (- old-value zoom-step))]
-    (swap! *rotation-state assoc :z-translation new-value)))
+    (swap! *rotation-state assoc :fov new-value)))
 
 (defn scrolled [e]
   (if (neg? (.getDeltaY e))
@@ -55,4 +59,9 @@
   (render-mesh (apply-rotation-state)))
 
 (defn -main[& args]
-  (display-mesh-window (apply-rotation-state) key-pressed scrolled #()))
+  (display-mesh-window
+    (apply-rotation-state)
+    (:window-size projection-params)
+    key-pressed
+    scrolled
+    #()))

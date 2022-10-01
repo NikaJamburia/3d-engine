@@ -21,7 +21,7 @@
   (-> mesh
       (rotate [(rotation-matrix :z theta)
                (rotation-matrix :x (* 0.5 theta))])
-      (project-to-3d 8)))
+      (project-to-3d)))
 
 (defn- get-current-rotation-theta []
   (if (= nil (:rotation-stopped-at-theta @*options))
@@ -56,5 +56,5 @@
   (.purge timer))
 
 (defn -main[& args]
-  (display-mesh-window (make-rotation base-mesh 0) key-pressed #() finish-animation)
+  (display-mesh-window (make-rotation base-mesh 0) (:window-size default-projection-params) key-pressed #() finish-animation)
   (start-rotation-animation))

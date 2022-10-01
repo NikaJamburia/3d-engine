@@ -38,7 +38,7 @@
 (defn- fx-mesh-to-polygons [mesh]
   (map fx-create-triangle (:triangles mesh)))
 
-(defn- root [{:keys [moved-mesh handle-key-press handle-scroll handle-exit]}]
+(defn- root [{:keys [moved-mesh handle-key-press handle-scroll handle-exit window-size]}]
   {:fx/type          :stage
    :showing          true
    :resizable        false
@@ -71,10 +71,11 @@
 (defn render-mesh [mesh]
   (update-mesh-state mesh))
 
-(defn display-mesh-window [mesh handle-key-press handle-scroll on-exit]
+(defn display-mesh-window [mesh window-size handle-key-press handle-scroll on-exit]
   (render-mesh mesh)
   (swap! *mesh-state assoc :handle-key-press handle-key-press)
   (swap! *mesh-state assoc :handle-scroll handle-scroll)
   (swap! *mesh-state assoc :handle-exit on-exit)
+  (swap! *mesh-state assoc :window-size window-size)
   (fx/mount-renderer *mesh-state  renderer))
 
