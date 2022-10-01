@@ -10,7 +10,7 @@
                                 :x-translation 0
                                 :y-translation 0})
 
-(defn generate-projection-matrix [params]
+(defn- generate-projection-matrix [params]
   (let [window-size (:window-size params)
         aspect (/ (:height window-size) (:width window-size))
         fov-rad (/ 1 (Math/tan (to-radians (* 0.5 (:fov params)))))
@@ -24,7 +24,7 @@
        [0 0 m-2-2 1]
        [0 0 m-3-2 0]])))
 
-(def default-projection-matrix (generate-projection-matrix default-projection-params))
+(def ^:private default-projection-matrix (generate-projection-matrix default-projection-params))
 
 (defn- translate [vec-3d axis amount]
   (assoc vec-3d axis (+ amount (axis vec-3d))))
