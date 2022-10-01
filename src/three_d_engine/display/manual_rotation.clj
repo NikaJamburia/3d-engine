@@ -15,19 +15,25 @@
 
 (def rotation-step (to-radians 20))
 (def zoom-step 5)
+(def translation-step 0.3)
 
 (def *rotation-state
-  (atom {:x 0 :y 0 :z 0 :fov 90}))
+  (atom {:x 0 :y 0 :z 0 :fov 90 :x-translation 0 :y-translation 0}))
 
 (defn update-theta [coordinate new-value]
   (swap! *rotation-state assoc coordinate new-value))
 
 (defn apply-rotation-state []
-  (-> base-mesh
-      (rotate [(rotation-matrix :x (:x @*rotation-state))
-               (rotation-matrix :y (:y @*rotation-state))
-               (rotation-matrix :z (:z @*rotation-state))])
-      (project-to-3d (assoc projection-params :fov (:fov @*rotation-state)))))
+  (let [new-params (assoc projection-params
+                     :fov (:fov @*rotation-state)
+                     :x-translation (:x-translation @*rotation-state)
+                     :y-translation (:y-translation @*rotation-state))]
+    (-> base-mesh
+        (rotate [(rotation-matrix :x (:x @*rotation-state))
+                 (rotation-matrix :y (:y @*rotation-state))
+                 (rotation-matrix :z (:z @*rotation-state))])
+        (project-to-3d new-params)))
+)
 
 (defn key-pressed [e]
   (let [key-code (.getCode e)]
@@ -36,8 +42,12 @@
       (= (KeyCode/RIGHT) key-code) (update-theta :y (+ (:y @*rotation-state) rotation-step))
       (= (KeyCode/UP) key-code) (update-theta :x (+ (:x @*rotation-state) rotation-step))
       (= (KeyCode/DOWN) key-code) (update-theta :x (- (:x @*rotation-state) rotation-step))
-      (= (KeyCode/W) key-code) (update-theta :z (+ (:z @*rotation-state) rotation-step))
-      (= (KeyCode/S) key-code) (update-theta :z (- (:z @*rotation-state) rotation-step))
+      (= (KeyCode/Q) key-code) (update-theta :z (+ (:z @*rotation-state) rotation-step))
+      (= (KeyCode/E) key-code) (update-theta :z (- (:z @*rotation-state) rotation-step))
+      (= (KeyCode/W) key-code) (swap! *rotation-state assoc :y-translation (- (:y-translation @*rotation-state) translation-step))
+      (= (KeyCode/S) key-code) (swap! *rotation-state assoc :y-translation (+ (:y-translation @*rotation-state) translation-step))
+      (= (KeyCode/D) key-code) (swap! *rotation-state assoc :x-translation (+ (:x-translation @*rotation-state) translation-step))
+      (= (KeyCode/A) key-code) (swap! *rotation-state assoc :x-translation (- (:x-translation @*rotation-state) translation-step))
       )
     (render-mesh (apply-rotation-state))))
 

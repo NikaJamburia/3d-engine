@@ -56,5 +56,10 @@
   (.purge timer))
 
 (defn -main[& args]
-  (display-mesh-window (make-rotation base-mesh 0) (:window-size default-projection-params) key-pressed #() finish-animation)
+  (display-mesh-window
+    (make-rotation base-mesh 0)
+    (:window-size default-projection-params)
+    key-pressed
+    #()
+    finish-animation)
   (start-rotation-animation))

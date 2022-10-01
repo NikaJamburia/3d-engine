@@ -6,7 +6,9 @@
                                 :fov 90
                                 :near 0.1
                                 :far 1000
-                                :z-translation 8})
+                                :z-translation 8
+                                :x-translation 0
+                                :y-translation 0})
 
 (defn generate-projection-matrix [params]
   (let [window-size (:window-size params)
@@ -22,11 +24,15 @@
        [0 0 m-2-2 1]
        [0 0 m-3-2 0]])))
 
-(defn- translate-z [vec-3d amount]
-  (assoc vec-3d :z (+ amount (:z vec-3d))))
+(def default-projection-matrix (generate-projection-matrix default-projection-params))
 
-(defn- translate-triangle [tri value]
-  (assoc tri :vectors (vec (map #(translate-z % value) (:vectors tri)))))
+(defn- translate [vec-3d axis amount]
+  (assoc vec-3d axis (+ amount (axis vec-3d))))
+
+(defn- translate-triangle [tri axis value]
+  (if (= 0 value)
+    tri
+    (assoc tri :vectors (vec (map #(translate % axis value) (:vectors tri))))))
 
 (defn- assign-normal [tri]
   (assoc tri :normal (calculate-triangle-normal tri)))
@@ -42,9 +48,13 @@
 
 (defn project-to-3d
   ([mesh params]
-    (let [projection-matrix (generate-projection-matrix params)]
+    (let [projection-matrix (if (= params default-projection-params)
+                              default-projection-matrix
+                              (generate-projection-matrix params))]
       (assoc mesh :triangles (->> (:triangles mesh)
-                                  (map #(translate-triangle % (:z-translation params)))
+                                  (map #(translate-triangle % :z (:z-translation params)))
+                                  (map #(translate-triangle % :x (:x-translation params)))
+                                  (map #(translate-triangle % :y (:y-translation params)))
                                   (map assign-normal)
                                   (filter is-visible?)
                                   (map illuminate)
