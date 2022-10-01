@@ -17,3 +17,6 @@
   (let [i (Float/floatToRawIntBits x)
         y (Float/intBitsToFloat (- 0x5f3759df (bit-shift-right i 1)))]
     (* y (- 1.5 (* 0.5 x y y)))))
+
+(defn to-radians [degrees]
+  (/ (* degrees (Math/PI)) 180))

@@ -2,24 +2,15 @@
   (:require [three-d-engine.3d-rotation :refer :all]
             [three-d-engine.display.mesh-display-java-fx :refer :all]
             [three-d-engine.3d-import :refer :all]
+            [three-d-engine.3d-util :refer :all]
             [three-d-engine.3d-projection :refer :all])
   (:import (javafx.scene.input KeyCode)))
 
-(def pi (Math/PI))
 
 (def base-mesh (import-mesh-from "teapot-low-poly.obj"))
 
-(defn to-radians [degrees]
-  (/ (* degrees pi) 180))
-
-(def rotation-step-degrees (to-radians 20))
-(def zoom-step 0.5)
-
-(defn subtract-theta [theta n]
-  (- theta n))
-
-(defn add-theta [theta n]
-  (+ theta n))
+(def rotation-step (to-radians 20))
+(def zoom-step 1)
 
 (def *rotation-state
   (atom {:x 0 :y 0 :z 0 :z-translation 8}))
@@ -37,33 +28,31 @@
 (defn key-pressed [e]
   (let [key-code (.getCode e)]
     (cond
-      (= (KeyCode/LEFT) key-code) (update-theta :y (subtract-theta (:y @*rotation-state) rotation-step-degrees))
-      (= (KeyCode/RIGHT) key-code) (update-theta :y (add-theta (:y @*rotation-state) rotation-step-degrees))
-      (= (KeyCode/UP) key-code) (update-theta :x (add-theta (:x @*rotation-state) rotation-step-degrees))
-      (= (KeyCode/DOWN) key-code) (update-theta :x (subtract-theta (:x @*rotation-state) rotation-step-degrees))
-      (= (KeyCode/W) key-code) (update-theta :z (add-theta (:z @*rotation-state) rotation-step-degrees))
-      (= (KeyCode/S) key-code) (update-theta :z (subtract-theta (:z @*rotation-state) rotation-step-degrees))
+      (= (KeyCode/LEFT) key-code) (update-theta :y (- (:y @*rotation-state) rotation-step))
+      (= (KeyCode/RIGHT) key-code) (update-theta :y (+ (:y @*rotation-state) rotation-step))
+      (= (KeyCode/UP) key-code) (update-theta :x (+ (:x @*rotation-state) rotation-step))
+      (= (KeyCode/DOWN) key-code) (update-theta :x (- (:x @*rotation-state) rotation-step))
+      (= (KeyCode/W) key-code) (update-theta :z (+ (:z @*rotation-state) rotation-step))
+      (= (KeyCode/S) key-code) (update-theta :z (- (:z @*rotation-state) rotation-step))
       )
     (render-mesh (apply-rotation-state))))
 
 (defn zoom-out []
   (let [old-value (:z-translation @*rotation-state)]
-    (swap! *rotation-state assoc :z-translation (+ old-value zoom-step))
-    (render-mesh (apply-rotation-state))))
+    (swap! *rotation-state assoc :z-translation (+ old-value zoom-step))))
 
 (defn zoom-in []
   (let [old-value (:z-translation @*rotation-state)
         new-value (if (= 1 old-value)
                     old-value
                     (- old-value zoom-step))]
-    (println old-value new-value)
-    (swap! *rotation-state assoc :z-translation new-value)
-    (render-mesh (apply-rotation-state))))
+    (swap! *rotation-state assoc :z-translation new-value)))
 
 (defn scrolled [e]
   (if (neg? (.getDeltaY e))
     (zoom-out)
-    (zoom-in)))
+    (zoom-in))
+  (render-mesh (apply-rotation-state)))
 
 (defn -main[& args]
   (display-mesh-window (apply-rotation-state) key-pressed scrolled #()))

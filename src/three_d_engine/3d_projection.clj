@@ -1,12 +1,13 @@
 (ns three-d-engine.3d-projection
-  (:require [three-d-engine.3d-core :refer :all]))
+  (:require [three-d-engine.3d-core :refer :all]
+            [three-d-engine.3d-util :refer :all]))
 
 (def near 0.1)
 (def far 1000)
 (def aspect (/ (:height window-size) (:width window-size)))
 (def fov 90)
 (def view-space-scale (/ far (- far near)))
-(def fov-rad (/ 1 (Math/tan (* fov (* (float 3.14159) (/ 0.5 180))))))
+(def fov-rad (/ 1 (Math/tan (to-radians (* 0.5 fov)))))
 
 (def projection-matrix
   (let [m-0-0 (* aspect fov-rad)
