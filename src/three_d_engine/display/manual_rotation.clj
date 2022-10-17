@@ -46,8 +46,8 @@
       (= (KeyCode/E) key-code) (update-theta :z (- (:z @*rotation-state) rotation-step))
       (= (KeyCode/W) key-code) (swap! *rotation-state assoc :y-translation (- (:y-translation @*rotation-state) translation-step))
       (= (KeyCode/S) key-code) (swap! *rotation-state assoc :y-translation (+ (:y-translation @*rotation-state) translation-step))
-      (= (KeyCode/D) key-code) (swap! *rotation-state assoc :x-translation (+ (:x-translation @*rotation-state) translation-step))
-      (= (KeyCode/A) key-code) (swap! *rotation-state assoc :x-translation (- (:x-translation @*rotation-state) translation-step))
+      (= (KeyCode/D) key-code) (swap! *rotation-state assoc :x-translation (- (:x-translation @*rotation-state) translation-step))
+      (= (KeyCode/A) key-code) (swap! *rotation-state assoc :x-translation (+ (:x-translation @*rotation-state) translation-step))
       )
     (render-mesh (apply-rotation-state))))
 
